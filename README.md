@@ -1,5 +1,4 @@
 # rpcookie
-A simple javascript library to make inter tab/window communication
 
 rpcookie (aka remote procedure cookie) is a very simple Javascript library that helps a site to communicate between all its opened windows/tabs. It can count how many pages are opened, list their URL, check which page is active, broadcast/unicast any Javascript operation from a page to others (using eval, pure evil). There are also callbacks like: page opened, page closed, page got focus, page lost focus.
 

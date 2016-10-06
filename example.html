@@ -1,0 +1,36 @@
+<div id="pages" style="border:1px solid black; width:60%; height: 150px; margin-left:20%; padding: 10px; overflow-y: scroll"></div>
+<div id="events" style="border:1px solid black; width:60%; height: 150px; margin-left:20%; padding: 10px; overflow-y: scroll"></div>
+
+<script src="rpcookie.js"></script>
+<script>
+
+function Pages()
+{
+  var pages = rpcookie.list_pages(), i;
+
+  ge('pages').innerHTML = '';
+  for (i = 0; i < pages.length; i++)
+    ge('pages').innerHTML += pages[i].id +' - ' + pages[i].url + '<br/>';
+}
+
+function PageChanged(data)
+{
+  Pages();
+  ge('events').innerHTML = 'Opened ' + data.url + '<br/>' + ge('events').innerHTML;
+}
+
+function PageClosed(data)
+{
+  Pages();
+  ge('events').innerHTML = 'Closed ' + data.url + '<br/>' + ge('events').innerHTML;
+}
+
+function ge(e) { return document.getElementById(e); }
+  
+
+if (!rpcookie.init({ new_page: PageChanged,
+                    close_page: PageClosed,
+                    load_done: Pages }))
+  alert('rpcookie failed to init, cookies disabled? untested browser? who knows...');
+
+</script>

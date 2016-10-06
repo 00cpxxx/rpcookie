@@ -70,8 +70,7 @@ var rpcookie =
       return false;
 
     var page = rpcookie.register_page(rpcookie.my_name);
-    page.url = location.href;
-    page.is_new = false;
+    page.is_new = false; /* do not callback for ourself */
 
     rpcookie.update_me();
     return true;
@@ -125,20 +124,22 @@ var rpcookie =
 
   timer_func: function(me)
   {
-    var cookies = rpcookie.parse_cookies(), keys, i, checked;
+    var cookies = rpcookie.parse_cookies(), keys, i, checked, page;
 
     for (i = 0, keys = Object.keys(cookies), checked = []; i < keys.length; i++)
     {
       /* add and update every page reading the cookie data */
       if (typeof rpcookie.pages[keys[i]] == 'undefined')
-        rpcookie.register_page(keys[i]);
+        page = rpcookie.register_page(keys[i]);
+      else
+        page = rpcookie.pages[keys[i]];
 
-      rpcookie.pages[keys[i]].val = cookies[keys[i]];
+      page.val = cookies[keys[i]];
       rpcookie.parse_page(keys[i]);
 
       /* when the page is inactive the browser will fire the event only everu 1000ms,
        * so wait a least 2 cycles before killing the page */
-      if (rpcookie.pages[keys[i]].bad_runs > 2500 / rpcookie.interval)
+      if (page.bad_runs > 2500 / rpcookie.interval)
         rpcookie.del_cookie(keys[i]);
       else
         checked.push(keys[i]);
@@ -146,22 +147,22 @@ var rpcookie =
 
     for (i = 0, keys = Object.keys(rpcookie.pages); i < keys.length; i++)
     {
+      page = rpcookie.pages[keys[i]];
       /* callback dead pages */
       if (keys[i] != rpcookie.my_name && rpcookie.in_array(keys[i], checked) < 0)
       {
-        var backup = rpcookie.pages[keys[i]];
         delete rpcookie.pages[keys[i]];
-        rpcookie.callbacks.close(backup);
+        rpcookie.callbacks.close(page);
       }
       /* callback new pages */
-      else if (rpcookie.pages[keys[i]].is_new)
+      else if (page.is_new)
       {
-        rpcookie.pages[keys[i]].is_new = false;
+        page.is_new = false;
         if (rpcookie.loaded) /* already existing pages are not callback'ed */
           rpcookie.callbacks.new(rpcookie.make_data(keys[i]));
       }
     }
-    
+
     rpcookie.runs++;
     rpcookie.runs &= 7;
     rpcookie.update_me();
@@ -175,17 +176,18 @@ var rpcookie =
 
   update_me: function()
   {
-    var page = rpcookie.pages[rpcookie.my_name],
-        str = '@$' +
-              'R' + rpcookie.runs + '$' +
-              'U' + page.url + '$';
+    var page = rpcookie.pages[rpcookie.my_name], str;
+    page.url = location.href;
+    str = '@$' +
+          'R' + rpcookie.runs + '$' +
+          'U' + page.url + '$';
     page.val = str;
     rpcookie.add_cookie(rpcookie.my_name, page.val);
   },
 
   parse_page: function(name)
   {
-    var page = rpcookie.pages[name], data, runs;
+    var page = rpcookie.pages[name], data, runs, url;
 
     data = page.val.split('$', 3);
     if (data.length != 3 || data[0] != '@')
@@ -196,7 +198,11 @@ var rpcookie =
     else
       page.bad_runs = 0;
     page.runs = runs;
-    page.url = data[2].substring(1);
+    
+    url = data[2].substring(1);
+    if (page.url != url)
+      page.is_new = true;
+    page.url = url;
   },
 
   register_page: function(name)

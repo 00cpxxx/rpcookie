@@ -1,45 +1,37 @@
 var rpcookie =
 {
-  prefix: 'rpc_',  /* cookie name prefix */
-  pages: {},       /* internal list of all opened pages */
-  interval: 200,   /* interval to poll everything */
-  callbacks: {},   /* callback pointers to open and close functions */
-  timer_ix: false, /* index of timer returned by setInterval */
-  loaded: false,   /* set after calling the load done callback */
-  runs: 0,         /* number of times the work loop was called (resets at 6) */
-  my_name: false,  /* will store my randomly generated cookie name */
-  requests: {},    /* list of pending requests to other pages */
+  /*
+   *  prefix    cookie name prefix
+   *  pages     internal list of all opened pages
+   *  interval  interval to poll everything
+   *  callbacks callback pointers to open and close functions
+   *  timer_ix  index of timer returned by setInterval
+   *  loaded    set after calling the load done callback
+   *  runs      number of times the work loop was called (resets at 6)
+   *  my_name   will store my randomly generated cookie name
+   */
 
   /* ================================= STATE ================================ */
   init: function(params)
   {
     if (rpcookie.timer_ix)
       return true;
-
     if (typeof document.cookie != 'string' || !navigator.cookieEnabled)
       return false;
+
+    rpcookie.prefix = 'rpc_';
+    rpcookie.pages = {};
+    rpcookie.interval = 300;
+    rpcookie.loaded = false;
+    rpcookie.runs = 0;
 
     rpcookie.callbacks = { new: rpcookie.internal_new,
                            close: rpcookie.internal_close,
                            load: rpcookie.internal_load };
 
-    if (typeof params == 'object')
-    {
-      if (typeof params.prefix == 'string')
-        rpcookie.prefix = params.prefix;
-      if (typeof params.interval == 'number')
-        rpcookie.interval = params.interval;
-
-      if (typeof params.new_page == 'function')
-        rpcookie.callbacks.new = params.new_page;
-      if (typeof params.close_page == 'function')
-        rpcookie.callbacks.close = params.close_page;
-      if (typeof params.load_done == 'function')
-        rpcookie.callbacks.load = params.load_done;
-    }
+    rpcookie.config(params);
 
     window.addEventListener('unload', rpcookie.unload_event);
-
     if (!rpcookie.register_me(true))
       return false;
 
@@ -48,6 +40,26 @@ var rpcookie =
       rpcookie.del_cookie(rpcookie.my_name);
 
     return !!rpcookie.timer_ix;
+  },
+  
+  config: function(params)
+  {
+    if (typeof params != 'object')
+      return false;
+
+    if (typeof params.prefix == 'string')
+      rpcookie.prefix = params.prefix;
+    if (typeof params.interval == 'number')
+      rpcookie.interval = params.interval;
+
+    if (typeof params.new_page == 'function')
+      rpcookie.callbacks.new = params.new_page;
+    if (typeof params.close_page == 'function')
+      rpcookie.callbacks.close = params.close_page;
+    if (typeof params.load_done == 'function')
+      rpcookie.callbacks.load = params.load_done;
+
+    return true;
   },
 
   register_me: function(rename)
@@ -67,7 +79,7 @@ var rpcookie =
 
   stop: function()
   {
-    if (rpcookie.timer_ix !== false)
+    if (rpcookie.timer_ix)
     {
       clearInterval(rpcookie.timer_ix);
       rpcookie.timer_ix = false;

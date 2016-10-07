@@ -244,7 +244,8 @@ var rpcookie =
         rpcookie.stop();
       }
     }
-    delete cookies[rpcookie.my_name];
+    else
+      delete cookies[rpcookie.my_name];
     
     return cookies;
   },

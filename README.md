@@ -6,6 +6,9 @@ To do so it creates a new random cookie whenever a new page is opened or a link 
 
 The page opened callback is triggered not only when a new window is opened but also when a link is followed so changing the current page.
 
+Working online example (open the link a few times in different tabs/windows and notice that each other detect the events and updates the list of opened pages):
+http://alexa.pro.br/~bruno/rpcookie/
+
 Example usage:
 
 <pre>

@@ -1,3 +1,9 @@
+/*
+ *   rpcookie 0.1
+ *   https://github.com/00cpxxx/rpcookie/
+ *   Copyright (c) 2016-2099 Bruno Jesus
+ *   Released under the MIT license
+ */
 var rpcookie =
 {
   /*
@@ -137,7 +143,7 @@ var rpcookie =
       page.val = cookies[keys[i]];
       rpcookie.parse_page(keys[i]);
 
-      /* when the page is inactive the browser will fire the event only everu 1000ms,
+      /* when the page is inactive the browser will fire the event only every 1000ms,
        * so wait a least 2 cycles before killing the page */
       if (page.bad_runs > 2500 / rpcookie.interval)
         rpcookie.del_cookie(keys[i]);
